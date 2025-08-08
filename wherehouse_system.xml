@@ -1,0 +1,373 @@
+<mujoco model="linear_axis_ur10e_warehouse">
+    <compiler angle="radian" meshdir="assets" autolimits="true"/>
+    <option timestep="0.002" iterations="150" solver="PGS" gravity="0 0 -9.81" integrator="implicitfast"/>
+    <statistic center="0 0 0.4" extent="1"/>
+    
+    <visual>
+        <headlight diffuse="0.6 0.6 0.6" ambient="0.1 0.1 0.1" specular="0 0 0"/>
+        <rgba haze="0.15 0.25 0.35 1"/>
+        <global azimuth="120" elevation="-20"/>
+        <quality shadowsize="2048"/>
+        <map stiffness="700" shadowscale="0.5" fogstart="10" fogend="15"/>
+    </visual>
+    
+    <default>
+        <default class="ur10e">
+            <material specular="0.5" shininess="0.25"/>
+            <joint axis="0 1 0" range="-6.28319 6.28319" armature="0.1"/>
+            <position ctrlrange="-6.2831 6.2831"/>
+            <general biastype="affine" ctrlrange="-6.2831 6.2831" gainprm="5000" biasprm="0 -5000 -500"/>
+            <default class="size4">
+                <joint damping="10"/>
+                <general forcerange="-330 330"/>
+            </default>
+            <default class="size3">
+                <joint damping="5"/>
+                <general forcerange="-150 150"/>
+                <default class="size3_limited">
+                    <joint range="-3.1415 3.1415"/>
+                    <general ctrlrange="-3.1415 3.1415"/>
+                </default>
+            </default>
+            <default class="size2">
+                <joint damping="2"/>
+                <general forcerange="-56 56"/>
+            </default>
+            <default class="visual">
+                <geom type="mesh" contype="0" conaffinity="0" group="2"/>
+            </default>
+            <default class="collision">
+                <geom type="capsule" group="3"/>
+                <default class="eef_collision">
+                    <geom type="cylinder"/>
+                </default>
+            </default>
+            <site size="0.001" rgba="0.5 0.5 0.5 0.3" group="4"/>
+        </default>
+        
+        <!-- Clases para elementos del almacén -->
+        <default class="pallet">
+            <geom type="box" rgba="0.6 0.4 0.2 1" friction="0.7"/>
+        </default>
+        <default class="box">
+            <geom type="box" friction="0.5"/>
+        </default>
+        <default class="table">
+            <geom type="box" rgba="0.4 0.3 0.2 1" friction="0.8"/>
+        </default>
+        <default class="marker">
+            <geom type="sphere" rgba="1 0 0 1" contype="0" conaffinity="0"/>
+        </default>
+    </default>
+    
+    <asset>
+        <!-- Texturas y materiales del entorno -->
+        <texture name="grid" type="2d" builtin="checker" width="512" height="512" rgb1="0.1 0.2 0.3" rgb2="0.2 0.3 0.4"/>
+        <material name="grid" texture="grid" texrepeat="30 10" texuniform="true" reflectance="0.2"/>
+        
+        <texture name="metal" type="2d" builtin="flat" width="32" height="32" rgb1="0.7 0.7 0.8"/>
+        <material name="metal" texture="metal" reflectance="0.3" rgba="0.7 0.7 0.8 1"/>
+        
+        <texture name="rail" type="2d" builtin="flat" width="32" height="32" rgb1="0.5 0.5 0.6"/>
+        <material name="rail" texture="rail" reflectance="0.4" rgba="0.5 0.5 0.6 1"/>
+        
+        <texture name="support" type="2d" builtin="flat" width="32" height="32" rgb1="0.3 0.3 0.4"/>
+        <material name="support" texture="support" reflectance="0.2" rgba="0.3 0.3 0.4 1"/>
+        
+        <!-- Materiales del UR10e -->
+        <material class="ur10e" name="black" rgba="0.033 0.033 0.033 1"/>
+        <material class="ur10e" name="jointgray" rgba="0.278 0.278 0.278 1"/>
+        <material class="ur10e" name="linkgray" rgba="0.82 0.82 0.82 1"/>
+        <material class="ur10e" name="urblue" rgba="0.49 0.678 0.8 1"/>
+        
+        <!-- Materiales del almacén -->
+        <material name="box_blue" rgba="0.2 0.4 0.8 1"/>
+        <material name="box_green" rgba="0.2 0.8 0.4 1"/>
+        <material name="box_red" rgba="0.8 0.2 0.2 1"/>
+        <material name="box_yellow" rgba="0.8 0.8 0.2 1"/>
+        <material name="box_orange" rgba="0.9 0.5 0.1 1"/>
+        <material name="box_purple" rgba="0.6 0.2 0.8 1"/>
+        
+        <!-- Meshes del UR10e -->
+        <mesh file="base_0.obj"/>
+        <mesh file="base_1.obj"/>
+        <mesh file="shoulder_0.obj"/>
+        <mesh file="shoulder_1.obj"/>
+        <mesh file="shoulder_2.obj"/>
+        <mesh file="upperarm_0.obj"/>
+        <mesh file="upperarm_1.obj"/>
+        <mesh file="upperarm_2.obj"/>
+        <mesh file="upperarm_3.obj"/>
+        <mesh file="forearm_0.obj"/>
+        <mesh file="forearm_1.obj"/>
+        <mesh file="forearm_2.obj"/>
+        <mesh file="forearm_3.obj"/>
+        <mesh file="wrist1_0.obj"/>
+        <mesh file="wrist1_1.obj"/>
+        <mesh file="wrist1_2.obj"/>
+        <mesh file="wrist2_0.obj"/>
+        <mesh file="wrist2_1.obj"/>
+        <mesh file="wrist2_2.obj"/>
+        <mesh file="wrist3.obj"/>
+    </asset>
+    
+    <worldbody>
+        <!-- Iluminación -->
+        <light pos="0 0 1.5" dir="0 0 -1" directional="true"/>
+        <light name="spotlight" mode="targetbodycom" target="wrist_2_link" pos="0 -1 2"/>
+        
+        <!-- Suelo más grande -->
+        <geom name="floor" pos="0 0 0" size="15 5 0.1" type="plane" material="grid"/>
+        
+        <!-- Carril base fijo - Adaptado a 3 metros -->
+        <body name="rail_base" pos="0 0 0.1">
+            <geom name="rail_structure" pos="0 0 0.05" size="1.6 0.1 0.05" type="box" material="rail" rgba="0.5 0.5 0.6 1"/>
+            
+            <!-- Soportes del carril cada metro (para 3 metros totales) -->
+            <geom name="support_1" pos="-1 0 -0.05" size="0.1 0.2 0.05" type="box" material="support"/>
+            <geom name="support_2" pos="0 0 -0.05" size="0.1 0.2 0.05" type="box" material="support"/>
+            <geom name="support_3" pos="1 0 -0.05" size="0.1 0.2 0.05" type="box" material="support"/>
+            
+            <!-- Slider (séptimo eje) - Adaptado a 3 metros -->
+            <body name="linear_slider" pos="0 0 0.2">
+                <inertial mass="50" pos="0 0 0" diaginertia="1 1 1"/>
+                <joint name="linear_joint" type="slide" axis="1 0 0" range="-1.5 1.5" limited="true" damping="50" frictionloss="10"/>
+                
+                <!-- Carro del slider -->
+                <geom name="slider_cart" pos="0 0 0" size="0.2 0.15 0.1" type="box" material="metal" rgba="0.7 0.7 0.8 1"/>
+                
+                <!-- Plataforma de montaje para robots -->
+                <body name="mount_platform" pos="0 0 0.15">
+                    <geom name="mount_base" pos="0 0 0.02" size="0.15 0.15 0.02" type="box" material="metal" rgba="0.6 0.6 0.7 1"/>
+                    
+                    <!-- Puntos de montaje (agujeros simulados) -->
+                    <geom name="mount_hole_1" pos="0.08 0.08 0.025" size="0.01 0.01 0.025" type="cylinder" rgba="0.2 0.2 0.2 1"/>
+                    <geom name="mount_hole_2" pos="-0.08 0.08 0.025" size="0.01 0.01 0.025" type="cylinder" rgba="0.2 0.2 0.2 1"/>
+                    <geom name="mount_hole_3" pos="0.08 -0.08 0.025" size="0.01 0.01 0.025" type="cylinder" rgba="0.2 0.2 0.2 1"/>
+                    <geom name="mount_hole_4" pos="-0.08 -0.08 0.025" size="0.01 0.01 0.025" type="cylinder" rgba="0.2 0.2 0.2 1"/>
+                    
+                    <!-- UR10e montado en la plataforma -->
+                    <body name="base" pos="0 0 0.05" quat="0 0 0 -1" childclass="ur10e">
+                        <inertial mass="4.0" pos="0 0 0" diaginertia="0.0061063308908 0.0061063308908 0.01125"/>
+                        <geom mesh="base_0" material="black" class="visual"/>
+                        <geom mesh="base_1" material="jointgray" class="visual"/>
+                        <body name="shoulder_link" pos="0 0 0.181">
+                            <inertial pos="0 0 0" mass="7.778" diaginertia="0.0314743 0.0314743 0.0218756"/>
+                            <joint name="shoulder_pan_joint" class="size4" axis="0 0 1"/>
+                            <geom mesh="shoulder_0" material="urblue" class="visual"/>
+                            <geom mesh="shoulder_1" material="black" class="visual"/>
+                            <geom mesh="shoulder_2" material="jointgray" class="visual"/>
+                            <geom class="collision" size="0.078 0.08" pos="0 0 -0.05"/>
+                            <body name="upper_arm_link" pos="0 0.176 0" quat="1 0 1 0">
+                                <inertial pos="0 0 0.3065" mass="12.93" diaginertia="0.423074 0.423074 0.0363656"/>
+                                <joint name="shoulder_lift_joint" class="size4"/>
+                                <geom mesh="upperarm_0" material="black" class="visual"/>
+                                <geom mesh="upperarm_1" material="jointgray" class="visual"/>
+                                <geom mesh="upperarm_2" material="urblue" class="visual"/>
+                                <geom mesh="upperarm_3" material="linkgray" class="visual"/>
+                                <geom class="collision" pos="0 -0.05 0" quat="1 1 0 0" size="0.078 0.08"/>
+                                <geom class="collision" size="0.06 0.3" pos="0 0 0.3"/>
+                                <body name="forearm_link" pos="0 -0.137 0.613">
+                                    <inertial pos="0 0 0.2855" mass="3.87" diaginertia="0.11059 0.11059 0.0108844"/>
+                                    <joint name="elbow_joint" class="size3_limited"/>
+                                    <geom mesh="forearm_0" material="urblue" class="visual"/>
+                                    <geom mesh="forearm_1" material="black" class="visual"/>
+                                    <geom mesh="forearm_2" material="jointgray" class="visual"/>
+                                    <geom mesh="forearm_3" material="linkgray" class="visual"/>
+                                    <geom class="collision" pos="0 0.08 0" quat="1 1 0 0" size="0.058 0.065"/>
+                                    <geom class="collision" size="0.043 0.28" pos="0 0 0.29"/>
+                                    <body name="wrist_1_link" pos="0 0 0.571" quat="1 0 1 0">
+                                        <inertial pos="0 0.135 0" quat="0.5 0.5 -0.5 0.5" mass="1.96" diaginertia="0.0055125 0.00510825 0.00510825"/>
+                                        <joint name="wrist_1_joint" class="size2"/>
+                                        <geom mesh="wrist1_0" material="black" class="visual"/>
+                                        <geom mesh="wrist1_1" material="urblue" class="visual"/>
+                                        <geom mesh="wrist1_2" material="jointgray" class="visual"/>
+                                        <geom class="collision" pos="0 0.06 0" quat="1 1 0 0" size="0.05 0.07"/>
+                                        <body name="wrist_2_link" pos="0 0.135 0">
+                                            <inertial pos="0 0 0.12" quat="0.5 0.5 -0.5 0.5" mass="1.96" diaginertia="0.0055125 0.00510825 0.00510825"/>
+                                            <joint name="wrist_2_joint" axis="0 0 1" class="size2"/>
+                                            <geom mesh="wrist2_0" material="black" class="visual"/>
+                                            <geom mesh="wrist2_1" material="urblue" class="visual"/>
+                                            <geom mesh="wrist2_2" material="jointgray" class="visual"/>
+                                            <geom class="collision" size="0.046 0.065" pos="0 0 0.05"/>
+                                            <geom class="collision" pos="0 0.028 0.12" quat="1 1 0 0" size="0.046 0.043"/>
+                                            <body name="wrist_3_link" pos="0 0 0.12">
+                                                <inertial pos="0 0.092 0" quat="0 1 -1 0" mass="0.202" diaginertia="0.000204525 0.000144346 0.000144346"/>
+                                                <joint name="wrist_3_joint" class="size2"/>
+                                                <geom material="linkgray" mesh="wrist3" class="visual"/>
+                                                <geom class="eef_collision" pos="0 0.097 0" quat="1 1 0 0" size="0.046 0.02"/>
+                                                <site name="attachment_site" pos="0 0.1 0" quat="-1 1 0 0"/>
+                                            </body>
+                                        </body>
+                                    </body>
+                                </body>
+                            </body>
+                        </body>
+                    </body>
+                </body>
+            </body>
+        </body>
+        
+        <!-- ESTIVA 1 - Posición -1.2m en X, separada 10cm del eje -->
+        <body name="pallet_1" pos="-1.2 -0.6 0.1">
+            <!-- Base de la estiva (1m x 1m x 0.1m) -->
+            <geom name="pallet_1_base" pos="0 0 0.05" size="0.5 0.5 0.05" class="pallet"/>
+            
+            <!-- Listones de la estiva -->
+            <geom name="pallet_1_slat_1" pos="-0.3 0 0.02" size="0.15 0.45 0.02" class="pallet"/>
+            <geom name="pallet_1_slat_2" pos="0 0 0.02" size="0.15 0.45 0.02" class="pallet"/>
+            <geom name="pallet_1_slat_3" pos="0.3 0 0.02" size="0.15 0.45 0.02" class="pallet"/>
+            
+            <!-- Cajas en estiva 1 -->
+            <body name="box_1_1" pos="0.2 0.2 0.25">
+                <geom name="box_1_1_geom" size="0.15 0.15 0.15" material="box_blue" class="box"/>
+                <!-- Marcador en esta caja -->
+                <body name="marker_box_1_1" pos="0 0 0.2">
+                    <geom name="marker_1_1" size="0.03" class="marker" rgba="1 0 0 1"/>
+                </body>
+            </body>
+            
+            <body name="box_1_2" pos="-0.2 0.2 0.15">
+                <geom name="box_1_2_geom" size="0.12 0.12 0.05" material="box_green" class="box"/>
+            </body>
+            
+            <body name="box_1_3" pos="0 -0.2 0.2">
+                <geom name="box_1_3_geom" size="0.18 0.1 0.1" material="box_red" class="box"/>
+                <!-- Marcador en esta caja -->
+                <body name="marker_box_1_3" pos="0 0 0.15">
+                    <geom name="marker_1_3" size="0.025" class="marker" rgba="0 1 0 1"/>
+                </body>
+            </body>
+        </body>
+        
+        <!-- ESTIVA 2 - Posición 0.0m en X, separada 10cm del eje -->
+        <body name="pallet_2" pos="0.0 -0.6 0.1">
+            <!-- Base de la estiva -->
+            <geom name="pallet_2_base" pos="0 0 0.05" size="0.5 0.5 0.05" class="pallet"/>
+            
+            <!-- Listones de la estiva -->
+            <geom name="pallet_2_slat_1" pos="-0.3 0 0.02" size="0.15 0.45 0.02" class="pallet"/>
+            <geom name="pallet_2_slat_2" pos="0 0 0.02" size="0.15 0.45 0.02" class="pallet"/>
+            <geom name="pallet_2_slat_3" pos="0.3 0 0.02" size="0.15 0.45 0.02" class="pallet"/>
+            
+            <!-- Cajas en estiva 2 -->
+            <body name="box_2_1" pos="0.15 0.15 0.15">
+                <geom name="box_2_1_geom" size="0.1 0.1 0.05" material="box_yellow" class="box"/>
+            </body>
+            
+            <body name="box_2_2" pos="-0.15 0.15 0.3">
+                <geom name="box_2_2_geom" size="0.2 0.15 0.2" material="box_orange" class="box"/>
+                <!-- Marcador en esta caja -->
+                <body name="marker_box_2_2" pos="0 0 0.25">
+                    <geom name="marker_2_2" size="0.03" class="marker" rgba="0 0 1 1"/>
+                </body>
+            </body>
+            
+            <body name="box_2_3" pos="0 -0.25 0.18">
+                <geom name="box_2_3_geom" size="0.25 0.08 0.08" material="box_purple" class="box"/>
+            </body>
+        </body>
+        
+        <!-- ESTIVA 3 - Posición 1.2m en X, separada 10cm del eje -->
+        <body name="pallet_3" pos="1.2 -0.6 0.1">
+            <!-- Base de la estiva -->
+            <geom name="pallet_3_base" pos="0 0 0.05" size="0.5 0.5 0.05" class="pallet"/>
+            
+            <!-- Listones de la estiva -->
+            <geom name="pallet_3_slat_1" pos="-0.3 0 0.02" size="0.15 0.45 0.02" class="pallet"/>
+            <geom name="pallet_3_slat_2" pos="0 0 0.02" size="0.15 0.45 0.02" class="pallet"/>
+            <geom name="pallet_3_slat_3" pos="0.3 0 0.02" size="0.15 0.45 0.02" class="pallet"/>
+            
+            <!-- Cajas en estiva 3 -->
+            <body name="box_3_1" pos="0.1 0.1 0.2">
+                <geom name="box_3_1_geom" size="0.12 0.12 0.1" material="box_blue" class="box"/>
+            </body>
+            
+            <body name="box_3_2" pos="-0.2 0 0.35">
+                <geom name="box_3_2_geom" size="0.15 0.2 0.25" material="box_green" class="box"/>
+                <!-- Marcador en esta caja -->
+                <body name="marker_box_3_2" pos="0 0 0.3">
+                    <geom name="marker_3_2" size="0.025" class="marker" rgba="1 1 0 1"/>
+                </body>
+            </body>
+        </body>
+        
+        <!-- MESA MÁS LARGA, ALEJADA 10CM DEL EJE, PATAS DE 10CM -->
+        <body name="work_table" pos="1.5 0.4 0.1">
+            <!-- Patas de la mesa (10cm de altura) -->
+            <geom name="table_leg_1" pos="0.6 0.15 0.05" size="0.03 0.03 0.05" class="table"/>
+            <geom name="table_leg_2" pos="-0.6 0.15 0.05" size="0.03 0.03 0.05" class="table"/>
+            <geom name="table_leg_3" pos="0.6 -0.15 0.05" size="0.03 0.03 0.05" class="table"/>
+            <geom name="table_leg_4" pos="-0.6 -0.15 0.05" size="0.03 0.03 0.05" class="table"/>
+            
+            <!-- Superficie de la mesa (más larga - 130cm x 40cm) -->
+            <geom name="table_top" pos="0 0 0.12" size="0.65 0.2 0.02" class="table"/>
+            
+            <!-- Múltiples cajas sobre la mesa más larga -->
+            <body name="table_box_1" pos="-0.45 0.1 0.22">
+                <geom name="table_box_1_geom" size="0.12 0.08 0.08" material="box_red" class="box"/>
+                <!-- Marcador sobre esta caja -->
+                <body name="marker_table_box_1" pos="0 0 0.11">
+                    <geom name="marker_table_1" size="0.025" class="marker" rgba="1 0.5 0 1"/>
+                </body>
+            </body>           
+
+            
+        
+            
+            <body name="table_box_4" pos="-0.3 -0.1 0.19">
+                <geom name="table_box_4_geom" size="0.08 0.06 0.05" material="box_yellow" class="box"/>
+            </body>
+            
+            
+      
+       
+        </body>
+        
+        <!-- Marcadores de posición adaptados a 3 metros (cada 0.5m) -->
+        <body name="markers">
+            <geom name="marker_m1_5" pos="-1.5 0.3 0.01" size="0.02 0.02 0.01" type="cylinder" rgba="1 0 0 1"/>
+            <geom name="marker_m1_0" pos="-1.0 0.3 0.01" size="0.02 0.02 0.01" type="cylinder" rgba="1 0.5 0 1"/>
+            <geom name="marker_m0_5" pos="-0.5 0.3 0.01" size="0.02 0.02 0.01" type="cylinder" rgba="1 1 0 1"/>
+            <geom name="marker_0" pos="0 0.3 0.01" size="0.02 0.02 0.01" type="cylinder" rgba="0 1 0 1"/>
+            <geom name="marker_p0_5" pos="0.5 0.3 0.01" size="0.02 0.02 0.01" type="cylinder" rgba="0 1 0.5 1"/>
+            <geom name="marker_p1_0" pos="1.0 0.3 0.01" size="0.02 0.02 0.01" type="cylinder" rgba="0 0.5 1 1"/>
+            <geom name="marker_p1_5" pos="1.5 0.3 0.01" size="0.02 0.02 0.01" type="cylinder" rgba="0 0 1 1"/>
+        </body>
+    </worldbody>
+    
+    <actuator>
+        <!-- Actuador del séptimo eje - Position control optimizado -->
+        <position name="linear_actuator" joint="linear_joint" 
+                  kp="50000" 
+                  kv="5000" 
+                  ctrlrange="-1.5 1.5" 
+                  forcerange="-1500 1500"/>
+        
+        <!-- Actuadores del UR10e -->
+        <general class="size4" name="shoulder_pan" joint="shoulder_pan_joint"/>
+        <general class="size4" name="shoulder_lift" joint="shoulder_lift_joint"/>
+        <general class="size3_limited" name="elbow" joint="elbow_joint"/>
+        <general class="size2" name="wrist_1" joint="wrist_1_joint"/>
+        <general class="size2" name="wrist_2" joint="wrist_2_joint"/>
+        <general class="size2" name="wrist_3" joint="wrist_3_joint"/>
+    </actuator>
+    
+    <sensor>
+        <!-- Sensores del séptimo eje -->
+        <jointpos name="linear_position" joint="linear_joint"/>
+        <jointvel name="linear_velocity" joint="linear_joint"/>
+        
+        <!-- Sensores del UR10e -->
+        <jointpos name="shoulder_pan_pos" joint="shoulder_pan_joint"/>
+        <jointpos name="shoulder_lift_pos" joint="shoulder_lift_joint"/>
+        <jointpos name="elbow_pos" joint="elbow_joint"/>
+        <jointpos name="wrist_1_pos" joint="wrist_1_joint"/>
+        <jointpos name="wrist_2_pos" joint="wrist_2_joint"/>
+        <jointpos name="wrist_3_pos" joint="wrist_3_joint"/>
+    </sensor>
+    
+    <keyframe>
+        <key name="home" qpos="0 -1.5708 -1.5708 1.5708 -1.5708 -1.5708 0" ctrl="0 -1.5708 -1.5708 1.5708 -1.5708 -1.5708 0"/>
+    </keyframe>
+</mujoco>
